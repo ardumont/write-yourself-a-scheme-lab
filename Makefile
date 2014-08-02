@@ -41,4 +41,4 @@ ghc-make:
 	ghc -o Main Main.hs
 
 ghc-run:
-	./Main 1 2
+	./Main
