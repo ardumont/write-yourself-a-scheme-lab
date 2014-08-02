@@ -41,4 +41,4 @@ ghc-make:
 	ghc -o Main Main.hs
 
 ghc-run:
-	./Main Antoine Dumont
+	./Main 1 2
