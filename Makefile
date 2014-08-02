@@ -36,3 +36,9 @@ cabal2nix:
 
 run-nix-shell:
 	nix-shell --pure write-yourself-a-scheme-lab.nix
+
+ghc-make:
+	ghc -o Main Main.hs
+
+ghc-run:
+	./Main tony
