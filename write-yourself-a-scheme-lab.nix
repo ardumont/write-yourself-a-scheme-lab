@@ -3,7 +3,7 @@
 }:
 
 let
-  inherit (haskellPackages) cabal cabalInstall_1_18_0_3 HUnit QuickCheck mtl; 
+  inherit (haskellPackages) cabal cabalInstall_1_18_0_3 HUnit QuickCheck mtl parsec;
 
 in cabal.mkDerivation (self: {
   pname = "write-yourself-a-scheme-lab";
@@ -13,7 +13,7 @@ in cabal.mkDerivation (self: {
   isLibrary = false;
   isExecutable = true;
   buildTools = [ cabalInstall_1_18_0_3 ];
-  buildDepends = with haskellPackages; [ mtl ];
+  buildDepends = with haskellPackages; [ mtl parsec ];
   testDepends = with haskellPackages; [ HUnit QuickCheck ];
   meta = {
     homepage = "https://github.com/ardumont/write-yourself-a-scheme-lab.git";

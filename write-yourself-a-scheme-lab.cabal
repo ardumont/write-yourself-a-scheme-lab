@@ -57,7 +57,8 @@ executable write-yourself-a-scheme-lab
   -- other-extensions:    
   
   -- Other library packages from which modules are imported.
-  build-depends:       base >=4.6 && <4.7
+  build-depends:     base >=4.6 && <4.7
+                   , parsec >= 3.1.5
   
   -- Directories containing source files.
   -- hs-source-dirs:      

@@ -10,7 +10,7 @@ install:
 deps:
 	ghc --version
 	cabal --version
-	cabal install base process mtl QuickCheck HUnit
+	cabal install base process mtl QuickCheck HUnit parsec
 
 sandbox-init:
 	cabal sandbox init
