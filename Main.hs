@@ -4,5 +4,5 @@ import System.Environment
 
 main :: IO ()
 main = do
-  (arg0:_) <- getArgs
-  putStrLn ("Hello, " ++ arg0)
+  (arg0:arg1:_) <- getArgs
+  mapM_ putStr ["Hello, ", arg0, " ", arg1]
