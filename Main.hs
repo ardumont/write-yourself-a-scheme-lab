@@ -1,14 +1,17 @@
 module Main where
 
+import Text.ParserCombinators.Parsec hiding (spaces)
 import System.Environment
+
+symbol :: Parser Char
+symbol = oneOf "!#$%&|*+-/:<=>?@^_~"
+
+readExpr :: String -> String
+readExpr input = case parse symbol "lisp" input of
+  Left err  -> "No match: " ++ show err
+  Right val -> "Found value!"
 
 main :: IO ()
 main = do
-  name <- getLine
-  putStrLn $ "Hello, " ++ name
-
-display :: String -> String -> IO ()
-display arg0 arg1 = mapM_ putStr ["Hello, ", arg0, " ", arg1]
-
-compute :: Num a => a -> a -> a
-compute num0 num1 = num0 + num1
+  (arg0:_) <- getArgs
+  putStrLn $ readExpr arg0
