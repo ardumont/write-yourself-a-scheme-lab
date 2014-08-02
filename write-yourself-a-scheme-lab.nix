@@ -12,7 +12,7 @@ in cabal.mkDerivation (self: {
   src = ./.;
   isLibrary = false;
   isExecutable = true;
-  buildTools = [ cabalInstall_1_18_0_3 ];
+  buildTools = [ cabalInstall_1_18_0_3 pkgs.rlwrap ];
   buildDepends = with haskellPackages; [ mtl parsec ];
   testDepends = with haskellPackages; [ HUnit QuickCheck ];
   meta = {
