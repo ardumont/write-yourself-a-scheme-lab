@@ -41,11 +41,20 @@ parseAtom = do
 parseNumber :: Parser LispVal
 parseNumber = liftM (Number . read) $ many1 digit
 
+-- | A list is a LispVal expression space separated
+parseList :: Parser LispVal
+parseList = liftM List $ sepBy parseExpr spaces
+
 -- | Parse LispVal expression
 parseExpr :: Parser LispVal
 parseExpr =   parseAtom
           <|> parseString
           <|> parseNumber
+          <|> do
+                char '('
+                x <- parseList
+                char ')'
+                return x
 
 readExpr :: String -> Maybe LispVal
 readExpr input = case parse parseExpr "lisp" input of
@@ -54,5 +63,5 @@ readExpr input = case parse parseExpr "lisp" input of
 
 main :: IO ()
 main = do
-  (arg0:_) <- getArgs
-  print $ readExpr arg0
+  args <- getArgs
+  print $ readExpr (unwords args)
