@@ -47,12 +47,12 @@ parseExpr =   parseAtom
           <|> parseString
           <|> parseNumber
 
-readExpr :: String -> String
+readExpr :: String -> Maybe LispVal
 readExpr input = case parse parseExpr "lisp" input of
-  Left err  -> "No match: " ++ show err
-  Right val -> "Found value!"
+  Left err  -> Nothing
+  Right val -> Just val
 
 main :: IO ()
 main = do
   (arg0:_) <- getArgs
-  putStrLn $ readExpr arg0
+  print $ readExpr arg0
