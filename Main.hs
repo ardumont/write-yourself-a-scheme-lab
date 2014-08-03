@@ -53,11 +53,19 @@ parseDottedList = do
   tail <- char '.' >> spaces >> parseExpr
   return $ DottedList head tail
 
+-- | Parse quote expression
+parseQuoted :: Parser LispVal
+parseQuoted = do
+  char '\''
+  x <- parseExpr
+  return $ List [Atom "quote", x]
+
 -- | Parse LispVal expression
 parseExpr :: Parser LispVal
 parseExpr =   parseAtom
           <|> parseString
           <|> parseNumber
+          <|> parseQuoted
           <|> do
                 char '('
                 x <- try parseList <|> parseDottedList
