@@ -12,7 +12,7 @@ spaces = skipMany1 space
 
 data LispVal = Atom String
              | List [LispVal]
-             | DottedLisp [LispVal] LispVal
+             | DottedList [LispVal] LispVal
              | Number Integer
              | String String
              | Bool Bool
@@ -45,6 +45,14 @@ parseNumber = liftM (Number . read) $ many1 digit
 parseList :: Parser LispVal
 parseList = liftM List $ sepBy parseExpr spaces
 
+-- | A dotted list is a list of space separated lisp expression and
+-- a . to define the tail. The tial is also a lisp expression.
+parseDottedList :: Parser LispVal
+parseDottedList = do
+  head <- endBy parseExpr spaces
+  tail <- char '.' >> spaces >> parseExpr
+  return $ DottedList head tail
+
 -- | Parse LispVal expression
 parseExpr :: Parser LispVal
 parseExpr =   parseAtom
@@ -52,7 +60,7 @@ parseExpr =   parseAtom
           <|> parseNumber
           <|> do
                 char '('
-                x <- parseList
+                x <- try parseList <|> parseDottedList
                 char ')'
                 return x
 
