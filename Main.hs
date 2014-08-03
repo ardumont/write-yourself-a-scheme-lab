@@ -2,6 +2,7 @@ module Main where
 
 import Text.ParserCombinators.Parsec hiding (spaces)
 import System.Environment
+import Data.Functor((<$>))
 
 symbol :: Parser Char
 symbol = oneOf "!#$%&|*+-/:<=>?@^_~"
@@ -43,7 +44,7 @@ parseAtom = do
 
 -- | A number is any number of digits
 parseNumber :: Parser LispVal
-parseNumber = many1 digit >>= \n -> return $ (Number . read) n
+parseNumber = (Number . read) <$> many1 digit
 
 main :: IO ()
 main = do
