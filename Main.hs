@@ -30,6 +30,17 @@ parseString = do
   char '"'
   return $ String x
 
+-- | An atom is a letter or a symbol followed by any number of letters, digits or symbols.
+parseAtom :: Parser LispVal
+parseAtom = do
+  first <- letter <|> symbol
+  rest <- many (letter <|> digit <|> symbol)
+  let atom = first : rest
+  return $ case atom of
+             "#t"      -> Bool True
+             "#f"      -> Bool False
+             otherwise -> Atom atom
+
 main :: IO ()
 main = do
   (arg0:_) <- getArgs
