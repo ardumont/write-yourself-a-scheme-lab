@@ -41,6 +41,10 @@ parseAtom = do
              "#f"      -> Bool False
              otherwise -> Atom atom
 
+-- | A number is any number of digits
+parseNumber :: Parser LispVal
+parseNumber = many1 digit >>= \n -> return $ (Number . read) n
+
 main :: IO ()
 main = do
   (arg0:_) <- getArgs
