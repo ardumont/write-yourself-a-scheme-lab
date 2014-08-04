@@ -98,6 +98,5 @@ eval v@(Bool   _)             = v
 eval (List [Atom "quote", v]) = v
 
 main :: IO ()
-main = do
-  args <- getArgs
-  print $ readExpr (unwords args)
+main =
+  getArgs >>= \ args -> print $ readExpr (unwords args)
