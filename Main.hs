@@ -96,6 +96,10 @@ eval v@(String _)             = v
 eval v@(Number _)             = v
 eval v@(Bool   _)             = v
 eval (List [Atom "quote", v]) = v
+eval (List (Atom fn : args)) = apply fn $ map eval args
+
+apply :: String -> [LispVal] -> LispVal
+apply = undefined
 
 main :: IO ()
 main =
