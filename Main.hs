@@ -106,7 +106,14 @@ apply fn args = maybe (Bool False) ($ args) $ lookup fn primitives
 
 -- | Supported primitive functions
 primitives :: [(PrimitiveName, [LispVal] -> LispVal)]
-primitives = [("+", numericBinOp (+))]
+primitives = [ ("+", numericBinOp (+))
+             , ("-", numericBinOp (-))
+             , ("*", numericBinOp (*))
+             , ("/", numericBinOp div)
+             , ("mod", numericBinOp mod)
+             , ("quotient", numericBinOp quot)
+             , ("remainder", numericBinOp rem)
+             ]
 
 -- | Reduce function from [LispVal] to LispVal
 numericBinOp :: (Integer -> Integer -> Integer) -> [LispVal] -> LispVal
