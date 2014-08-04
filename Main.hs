@@ -83,13 +83,13 @@ showVal (Bool True)                    = "#t"
 showVal (Bool False)                   = "#f"
 showVal (Atom name)                    = name
 showVal (Number n)                     = show n
-showVal (List lispVals)                = unwords $ ["("] ++ map showVal lispVals ++ [")"]
-showVal (DottedList headVals tailVals) = unwords $ ["("] ++ map showVal headVals ++ [".", showVal tailVals, ")"]
+showVal (List lispVals)                = "(" ++ unwords (map showVal lispVals) ++ ")"
+showVal (DottedList headVals tailVals) = "(" ++ unwords (map showVal headVals) ++ "." ++ showVal tailVals ++ ")"
 
 main :: IO ()
 main = do
   args <- getArgs
   let val = case readExpr (unwords args) of
-        (Just lispVal) -> unwords ["Value:", showVal lispVal]
+        (Just lispVal) -> unwords ["Lisp Value:", showVal lispVal]
         Nothing        -> "No value."
   print val
