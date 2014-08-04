@@ -91,6 +91,12 @@ readExpr input = case parse parseExpr "lisp" input of
   Left err  -> "No match: " ++ show err
   Right val -> "Lisp Value: " ++ show val
 
+eval :: LispVal -> LispVal
+eval v@(String _)             = v
+eval v@(Number _)             = v
+eval v@(Bool   _)             = v
+eval (List [Atom "quote", v]) = v
+
 main :: IO ()
 main = do
   args <- getArgs
