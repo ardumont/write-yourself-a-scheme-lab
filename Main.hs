@@ -86,10 +86,10 @@ parseExpr =   parseAtom
                 char ')'
                 return x
 
-readExpr :: String -> Maybe LispVal
+readExpr :: String -> String
 readExpr input = case parse parseExpr "lisp" input of
-  Left err  -> Nothing
-  Right val -> Just val
+  Left err  -> "No match: " ++ show err
+  Right val -> "Lisp Value: " ++ show val
 
 main :: IO ()
 main = do
