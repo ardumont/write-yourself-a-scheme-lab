@@ -117,7 +117,7 @@ primitives = [ ("+", numericBinOp (+))
 
 -- | Reduce function from [LispVal] to LispVal
 numericBinOp :: (Integer -> Integer -> Integer) -> [LispVal] -> LispVal
-numericBinOp binOp = Number . foldr1 binOp . map unpackNum
+numericBinOp binOp = Number . foldl1 binOp . map unpackNum
 
 -- | Given a lisp val expression, extract the number
 unpackNum :: LispVal -> Integer
