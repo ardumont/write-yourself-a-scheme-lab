@@ -122,7 +122,9 @@ numericBinOp binOp = Number . foldl1 binOp . map unpackNum
 -- | Given a lisp val expression, extract the number
 unpackNum :: LispVal -> Integer
 unpackNum (Number n) = n
-unpackNum (String s) = undefined
+unpackNum (String n) = case reads n of
+                         []    -> 0
+                         (x:_) -> fst x
 unpackNum (List [n]) = unpackNum n
 unpackNum _          = 0
 
