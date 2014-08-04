@@ -99,4 +99,4 @@ eval (List [Atom "quote", v]) = v
 
 main :: IO ()
 main =
-  getArgs >>= print . readExpr . unwords
+  getArgs >>= print . eval . readExpr . unwords
