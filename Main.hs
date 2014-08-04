@@ -16,7 +16,21 @@ data LispVal = Atom String
              | Number Integer
              | String String
              | Bool Bool
-             deriving Show
+
+instance Show LispVal where
+  show = showVal
+
+showVal :: LispVal -> String
+showVal (String s)                     = unwords ["\"", s, "\""]
+showVal (Bool True)                    = "#t"
+showVal (Bool False)                   = "#f"
+showVal (Atom name)                    = name
+showVal (Number n)                     = show n
+showVal (List lispVals)                = "(" ++ unwordsList lispVals ++ ")"
+showVal (DottedList headVals tailVals) = "(" ++ unwordsList headVals ++ "." ++ showVal tailVals ++ ")"
+
+unwordsList :: [LispVal] -> String
+unwordsList = unwords . map showVal
 
 -- | A string begins with a "
 parseString :: Parser LispVal
@@ -77,22 +91,7 @@ readExpr input = case parse parseExpr "lisp" input of
   Left err  -> Nothing
   Right val -> Just val
 
-showVal :: LispVal -> String
-showVal (String s)                     = unwords ["\"", s, "\""]
-showVal (Bool True)                    = "#t"
-showVal (Bool False)                   = "#f"
-showVal (Atom name)                    = name
-showVal (Number n)                     = show n
-showVal (List lispVals)                = "(" ++ unwordsList lispVals ++ ")"
-showVal (DottedList headVals tailVals) = "(" ++ unwordsList headVals ++ "." ++ showVal tailVals ++ ")"
-
-unwordsList :: [LispVal] -> String
-unwordsList = unwords . map showVal
-
 main :: IO ()
 main = do
   args <- getArgs
-  let val = case readExpr (unwords args) of
-        (Just lispVal) -> unwords ["Lisp Value:", showVal lispVal]
-        Nothing        -> "No value."
-  print val
+  print $ readExpr (unwords args)
