@@ -83,8 +83,11 @@ showVal (Bool True)                    = "#t"
 showVal (Bool False)                   = "#f"
 showVal (Atom name)                    = name
 showVal (Number n)                     = show n
-showVal (List lispVals)                = "(" ++ unwords (map showVal lispVals) ++ ")"
-showVal (DottedList headVals tailVals) = "(" ++ unwords (map showVal headVals) ++ "." ++ showVal tailVals ++ ")"
+showVal (List lispVals)                = "(" ++ unwordsList lispVals ++ ")"
+showVal (DottedList headVals tailVals) = "(" ++ unwordsList headVals ++ "." ++ showVal tailVals ++ ")"
+
+unwordsList :: [LispVal] -> String
+unwordsList = unwords . map showVal
 
 main :: IO ()
 main = do
