@@ -98,8 +98,26 @@ eval v@(Bool   _)             = v
 eval (List [Atom "quote", v]) = v
 eval (List (Atom fn : args)) = apply fn $ map eval args
 
-apply :: String -> [LispVal] -> LispVal
-apply = undefined
+type PrimitiveName = String
+
+-- | Given a function name, and a LispVal, return a LispVal
+apply :: PrimitiveName -> [LispVal] -> LispVal
+apply fn args = maybe (Bool False) ($ args) $ lookup fn primitives
+
+-- | Supported primitive functions
+primitives :: [(PrimitiveName, [LispVal] -> LispVal)]
+primitives = [("+", numericBinOp (+))]
+
+-- | Reduce function from [LispVal] to LispVal
+numericBinOp :: (Integer -> Integer -> Integer) -> [LispVal] -> LispVal
+numericBinOp binOp = Number . foldr (binOp . unpackNum) 0
+
+-- | Given a lisp val expression, extract the number
+unpackNum :: LispVal -> Integer
+unpackNum (Number n) = n
+unpackNum (String s) = undefined
+unpackNum (List [n]) = unpackNum n
+unpackNum _          = 0
 
 main :: IO ()
 main =
