@@ -34,6 +34,11 @@ data LispError = NumArgs Integer [LispVal]
                | UnboundVar String String
                | Default String
 
+-- | Use haskell's built-in error handling mechanism
+instance Error LispError where
+  noMsg  = Default "An error has occured"
+  strMsg = Default
+
 instance Show LispError where show = showError
 
 showError :: LispError -> String
