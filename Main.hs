@@ -157,9 +157,9 @@ primitives = [ ("+", numericBinOp (+))
 -- | Given a binary operation on integer, reduce function from [LispVal]
 -- representing numbers to LispVal
 numericBinOp :: (Integer -> Integer -> Integer) -> [LispVal] -> ThrowsError LispVal
-numericBinOp binOp []    = throwError $ NumArgs 2 []
-numericBinOp binOp l@[_] = throwError $ NumArgs 2 l
-numericBinOp binOp l     = liftM (Number . foldl1 binOp) (mapM unpackNum l)
+numericBinOp _ []    = throwError $ NumArgs 2 []
+numericBinOp _ l@[_] = throwError $ NumArgs 2 l
+numericBinOp binOp l = liftM (Number . foldl1 binOp) (mapM unpackNum l)
 
 -- | Given a lisp val expression, extract a number.
 -- If nothing matches a number, return 0
