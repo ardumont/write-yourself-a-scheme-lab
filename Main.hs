@@ -5,11 +5,7 @@ import System.Environment
 import Control.Monad (liftM)
 import Control.Monad.Error
 
-symbol :: Parser Char
-symbol = oneOf "!#$%&|*+-/:<=>?@^_~"
-
-spaces :: Parser ()
-spaces = skipMany1 space
+-------------- types
 
 data LispVal = Atom String
              | List [LispVal]
@@ -18,8 +14,7 @@ data LispVal = Atom String
              | String String
              | Bool Bool
 
-instance Show LispVal where
-  show = showVal
+instance Show LispVal where show = showVal
 
 showVal :: LispVal -> String
 showVal (String s)                     = unwords ["\"", s, "\""]
@@ -29,6 +24,14 @@ showVal (Atom name)                    = name
 showVal (Number n)                     = show n
 showVal (List lispVals)                = "(" ++ unwordsList lispVals ++ ")"
 showVal (DottedList headVals tailVals) = "(" ++ unwordsList headVals ++ "." ++ showVal tailVals ++ ")"
+
+-------------- functions
+
+symbol :: Parser Char
+symbol = oneOf "!#$%&|*+-/:<=>?@^_~"
+
+spaces :: Parser ()
+spaces = skipMany1 space
 
 unwordsList :: [LispVal] -> String
 unwordsList = unwords . map showVal
