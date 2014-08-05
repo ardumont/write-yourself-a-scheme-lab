@@ -152,6 +152,18 @@ primitives = [ ("+", numericBinOp (+))
              , ("mod", numericBinOp mod)
              , ("quotient", numericBinOp quot)
              , ("remainder", numericBinOp rem)
+             , ("=", numBoolBinOp (==))
+             , ("<", numBoolBinOp (<))
+             , (">", numBoolBinOp (>))
+             , ("/=", numBoolBinOp (/=))
+             , (">=", numBoolBinOp (>=))
+             , ("<=", numBoolBinOp (<=))
+             , ("&&", boolBoolBinOp (&&))
+             , ("||", boolBoolBinOp (||))
+             , ("string=?", strBoolBinOp (==))
+             , ("string?", strBoolBinOp (>))
+             , ("string<=?", strBoolBinOp (<=))
+             , ("string>=?", strBoolBinOp (>=))
              ]
 
 -- | Given a binary operation on integer, reduce function from [LispVal]
@@ -168,6 +180,35 @@ unpackNum (String n) = case reads n of
                          (x:_) -> return $ fst x
 unpackNum (List [n]) = unpackNum n
 unpackNum notANum    = throwError $ TypeMismatch "Number" notANum
+
+-- | Given a lisp val expression, extract a string.
+unpackStr :: LispVal -> ThrowsError String
+unpackStr (String s) = return s
+unpackStr (Number s) = (return . show) s
+unpackStr (Bool s)   = (return . show) s
+unpackStr notAString = throwError $ TypeMismatch "String" notAString
+
+-- | Given a bool expression, extract a boolean
+unpackBool :: LispVal -> ThrowsError Bool
+unpackBool (Bool b) = return b
+unpackBool notABool = throwError $ TypeMismatch "Bool" notABool
+
+numBoolBinOp :: (Integer -> Integer -> Bool) -> [LispVal] -> ThrowsError LispVal
+numBoolBinOp = boolBinop unpackNum
+
+strBoolBinOp :: (String -> String -> Bool) -> [LispVal] -> ThrowsError LispVal
+strBoolBinOp = boolBinop unpackStr
+
+boolBoolBinOp :: (Bool -> Bool -> Bool) -> [LispVal] -> ThrowsError LispVal
+boolBoolBinOp = boolBinop unpackBool
+
+-- | Generic binary operation on argument with explicitely 2 arguments
+boolBinop :: (LispVal -> ThrowsError a) -> (a -> a -> Bool) -> [LispVal] -> ThrowsError LispVal
+boolBinop unpacker op [h, t] = do
+                                 left <- unpacker h
+                                 right <- unpacker t
+                                 return $ Bool $ op left right
+boolBinop _ _ no2Elements    = throwError $ NumArgs 2 no2Elements
 
 main :: IO ()
 main = do
