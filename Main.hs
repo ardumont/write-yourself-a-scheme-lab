@@ -123,8 +123,8 @@ parseExpr =   parseAtom
 
 readExpr :: String -> ThrowsError LispVal
 readExpr input = case parse parseExpr "lisp" input of
-  Left err      -> throwError $ Parser err
-  v@(Right val) -> return val
+  Left err  -> throwError $ Parser err
+  Right val -> return val
 
 eval :: LispVal -> ThrowsError LispVal
 eval v@(String _)             = return v
