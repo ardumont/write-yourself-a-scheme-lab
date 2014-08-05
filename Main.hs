@@ -23,7 +23,7 @@ showVal (Bool False)                   = "#f"
 showVal (Atom name)                    = name
 showVal (Number n)                     = show n
 showVal (List lispVals)                = "(" ++ unwordsList lispVals ++ ")"
-showVal (DottedList headVals tailVals) = "(" ++ unwordsList headVals ++ "." ++ showVal tailVals ++ ")"
+showVal (DottedList headVals tailVals) = "(" ++ unwordsList headVals ++ " . " ++ showVal tailVals ++ ")"
 
 -- | The possible errors
 data LispError = NumArgs Integer [LispVal]
