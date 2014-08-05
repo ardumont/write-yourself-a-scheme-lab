@@ -161,7 +161,6 @@ numericBinOp binOp l@(_:_:_)    = liftM (Number . foldl1 binOp) (mapM unpackNum 
 numericBinOp _ emptyOrSingleArg = throwError $ NumArgs 2 emptyOrSingleArg
 
 -- | Given a lisp val expression, extract a number.
--- If nothing matches a number, return 0
 unpackNum :: LispVal -> ThrowsError Integer
 unpackNum (Number n) = return n
 unpackNum (String n) = case reads n of
