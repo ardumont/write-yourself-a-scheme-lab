@@ -49,6 +49,14 @@ showError (NumArgs expected found)      = "Expected " ++ show expected ++ " args
 showError (TypeMismatch expected found) = "Invalid type: expected " ++ expected ++ ", found " ++ show found
 showError (Parser parseErr)             = "Parse error at " ++ show parseErr
 
+type ThrowsError = Either LispError
+
+-- trapError :: (Show e, MonadError e m) => m String -> m String
+trapError action = catchError action (return . show)
+
+extractValue :: ThrowsError a -> a
+extractValue (Right v) = v
+
 -------------- functions
 
 symbol :: Parser Char
@@ -114,26 +122,29 @@ parseExpr =   parseAtom
                 char ')'
                 return x
 
-readExpr :: String -> LispVal
+readExpr :: String -> ThrowsError LispVal
 readExpr input = case parse parseExpr "lisp" input of
-  Left err  -> String $ "No match: " ++ show err
-  Right val -> val
+  Left err      -> throwError $ Parser err
+  v@(Right val) -> return val
 
-eval :: LispVal -> LispVal
-eval v@(String _)             = v
-eval v@(Number _)             = v
-eval v@(Bool   _)             = v
-eval (List [Atom "quote", v]) = v
-eval (List (Atom fn : args)) = apply fn $ map eval args
+eval :: LispVal -> ThrowsError LispVal
+eval v@(String _)             = return v
+eval v@(Number _)             = return v
+eval v@(Bool   _)             = return v
+eval (List [Atom "quote", v]) = return v
+eval (List (Atom fn : args))  = mapM eval args >>= apply fn
+eval l@_                      = throwError $ BadSpecialForm "Unrecognised special form" l
 
 type PrimitiveName = String
 
 -- | Given a function name, and a LispVal, return a LispVal
-apply :: PrimitiveName -> [LispVal] -> LispVal
-apply fn args = maybe (Bool False) ($ args) $ lookup fn primitives
+apply :: PrimitiveName -> [LispVal] -> ThrowsError LispVal
+apply fn args = maybe (throwError $ NotFunction "Unrecognised primitive function" fn)
+                      ($ args)
+                      (lookup fn primitives)
 
 -- | Supported primitive functions
-primitives :: [(PrimitiveName, [LispVal] -> LispVal)]
+primitives :: [(PrimitiveName, [LispVal] -> ThrowsError LispVal)]
 primitives = [ ("+", numericBinOp (+))
              , ("-", numericBinOp (-))
              , ("*", numericBinOp (*))
@@ -145,19 +156,23 @@ primitives = [ ("+", numericBinOp (+))
 
 -- | Given a binary operation on integer, reduce function from [LispVal]
 -- representing numbers to LispVal
-numericBinOp :: (Integer -> Integer -> Integer) -> [LispVal] -> LispVal
-numericBinOp binOp = Number . foldl1 binOp . map unpackNum
+numericBinOp :: (Integer -> Integer -> Integer) -> [LispVal] -> ThrowsError LispVal
+numericBinOp binOp []    = throwError $ NumArgs 2 []
+numericBinOp binOp l@[_] = throwError $ NumArgs 2 l
+numericBinOp binOp l     = liftM (Number . foldl1 binOp) (mapM unpackNum l)
 
 -- | Given a lisp val expression, extract a number.
 -- If nothing matches a number, return 0
-unpackNum :: LispVal -> Integer
-unpackNum (Number n) = n
+unpackNum :: LispVal -> ThrowsError Integer
+unpackNum (Number n) = return n
 unpackNum (String n) = case reads n of
-                         []    -> 0
-                         (x:_) -> fst x
+                         []    -> throwError $ TypeMismatch "Number" (String n)
+                         (x:_) -> return $ fst x
 unpackNum (List [n]) = unpackNum n
-unpackNum _          = 0
+unpackNum _          = return 0
 
 main :: IO ()
-main =
-  getArgs >>= print . eval . readExpr . unwords
+main = do
+  args <- getArgs
+  let lispVal = (readExpr . unwords) args >>= eval
+  print lispVal
