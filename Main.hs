@@ -47,9 +47,9 @@ parseAtom = do
   rest <- many (letter <|> digit <|> symbol)
   let atom = first : rest
   return $ case atom of
-             "#t"      -> Bool True
-             "#f"      -> Bool False
-             otherwise -> Atom atom
+             "#t" -> Bool True
+             "#f" -> Bool False
+             _    -> Atom atom
 
 -- | A number is any number of digits
 parseNumber :: Parser LispVal
@@ -63,9 +63,9 @@ parseList = liftM List $ sepBy parseExpr spaces
 -- a . to define the tail. The tial is also a lisp expression.
 parseDottedList :: Parser LispVal
 parseDottedList = do
-  head <- endBy parseExpr spaces
-  tail <- char '.' >> spaces >> parseExpr
-  return $ DottedList head tail
+  h <- endBy parseExpr spaces
+  t <- char '.' >> spaces >> parseExpr
+  return $ DottedList h t
 
 -- | Parse quote expression
 parseQuoted :: Parser LispVal
