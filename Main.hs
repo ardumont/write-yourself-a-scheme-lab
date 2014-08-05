@@ -170,6 +170,7 @@ primitives = [ ("+", numericBinOp (+))
              , ("car", car)
              , ("cdr", cdr)
              , ("cons", cons)
+             , ("eqv", eqv)
              ]
 
 -- | Given a binary operation on integer, reduce function from [LispVal]
@@ -260,6 +261,32 @@ cons badArgList = throwError $ NumArgs 2 badArgList
 -- (a b)
 -- *Main> :main "(cons 'a '(b . 2))"
 -- (a b . 2)
+
+eqv :: [LispVal] -> ThrowsError LispVal
+eqv [Bool t0, Bool t1] = return $ Bool $ t0 == t1
+eqv [Number n0, Number n1] = return $ Bool $ n0 == n1
+eqv [String s0, String s1] = return $ Bool $ s0 == s1
+eqv [Atom a0, Atom a1] = return $ Bool $ a0 == a1
+eqv [DottedList x0 t0, DottedList x1 t1] = eqv [List (t0 : x0), List (t1 : x1)]
+eqv [List x0, List x1] = return $ Bool $ (length x0 == length x1) && all eqvPair (zip x0 x1)
+                         where eqvPair (y0, y1) = case eqv [y0, y1] of
+                                 Left _         -> False
+                                 Right (Bool v) -> v
+eqv [_, _] = return $ Bool False
+eqv badArgList = throwError $ NumArgs 2 badArgList
+
+-- *Main> :main "(eqv '(2 3) '(2 3))"
+-- #t
+-- *Main> :main "(eqv #t #f)"
+-- #f
+-- *Main> :main "(eqv #f #f)"
+-- #t
+-- *Main> :main "(eqv #f '(1))"
+-- #f
+-- *Main> :main "(eqv #t '(1))"
+-- #f
+-- *Main> :main "(eqv 1 '(1))"
+-- #f
 
 main :: IO ()
 main = do
