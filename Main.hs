@@ -3,6 +3,7 @@ module Main where
 import Text.ParserCombinators.Parsec hiding (spaces)
 import System.Environment
 import Control.Monad (liftM)
+import Control.Monad.Error
 
 symbol :: Parser Char
 symbol = oneOf "!#$%&|*+-/:<=>?@^_~"
@@ -115,11 +116,13 @@ primitives = [ ("+", numericBinOp (+))
              , ("remainder", numericBinOp rem)
              ]
 
--- | Reduce function from [LispVal] to LispVal
+-- | Given a binary operation on integer, reduce function from [LispVal]
+-- representing numbers to LispVal
 numericBinOp :: (Integer -> Integer -> Integer) -> [LispVal] -> LispVal
 numericBinOp binOp = Number . foldl1 binOp . map unpackNum
 
--- | Given a lisp val expression, extract the number
+-- | Given a lisp val expression, extract a number.
+-- If nothing matches a number, return 0
 unpackNum :: LispVal -> Integer
 unpackNum (Number n) = n
 unpackNum (String n) = case reads n of
