@@ -222,12 +222,30 @@ car [DottedList (x : _) _] = return x
 car [badArg]               = throwError $ TypeMismatch "pair" badArg
 car badArgList             = throwError $ NumArgs 1 badArgList
 
+-- *Main> :main "(car '(b . 2))"
+-- b
+-- *Main> :main "(car '(2))"
+-- 2
+-- *Main> :main "(car '())"
+-- Invalid type: expected pair, found ()
+
 cdr :: [LispVal] -> ThrowsError LispVal
 cdr [List (_ : xs)]         = return $ List xs
 cdr [DottedList [_] xs]     = return xs
 cdr [DottedList (_ : xs) t] = return $ DottedList xs t
 cdr [badArg]                = throwError $ TypeMismatch "pair" badArg
 cdr badArgList              = throwError $ NumArgs 1 badArgList
+
+-- *Main> :main "(cdr '(2 1))"
+-- (1)
+-- *Main> :main "(cdr '(2 1 . 4))"
+-- (1 . 4)
+-- *Main> :main "(cdr '(2 1 . 4))"
+-- (1 . 4)
+-- *Main> :main "(cdr '(2))"
+-- ()
+-- *Main> :main "(cdr '())"
+-- Invalid type: expected pair, found ()
 
 cons :: [LispVal] -> ThrowsError LispVal
 cons [x, List []] = return $ List [x]
