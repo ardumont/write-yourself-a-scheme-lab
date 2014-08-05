@@ -169,7 +169,7 @@ unpackNum (String n) = case reads n of
                          []    -> throwError $ TypeMismatch "Number" (String n)
                          (x:_) -> return $ fst x
 unpackNum (List [n]) = unpackNum n
-unpackNum _          = return 0
+unpackNum notNum     = throwError $ TypeMismatch "Number" notNum
 
 main :: IO ()
 main = do
