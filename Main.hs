@@ -170,7 +170,8 @@ primitives = [ ("+", numericBinOp (+))
              , ("car", car)
              , ("cdr", cdr)
              , ("cons", cons)
-             , ("eqv", eqv)
+             , ("eq?", eqv)
+             , ("eqv?", eqv)
              ]
 
 -- | Given a binary operation on integer, reduce function from [LispVal]
