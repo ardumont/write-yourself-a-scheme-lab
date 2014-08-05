@@ -12,6 +12,7 @@ data LispVal = Atom String
              | Number Integer
              | String String
              | Bool Bool
+             deriving Eq
 
 instance Show LispVal where show = showVal
 
@@ -131,11 +132,9 @@ eval v@(String _)             = return v
 eval v@(Number _)             = return v
 eval v@(Bool   _)             = return v
 eval (List [Atom "quote", v]) = return v
-eval (List [Atom "if", predicate, ifStmt, elseStmt]) = do
-  result <- eval predicate
-  case result of
-    Bool False -> eval elseStmt
-    _          -> eval ifStmt
+eval (List [Atom "if", predicate, ifStmt, elseStmt]) =
+  eval predicate >>=
+  \ result -> eval $ if result /= Bool False then ifStmt else elseStmt
 eval (List (Atom fn : args))  = mapM eval args >>= apply fn
 eval l@_                      = throwError $ BadSpecialForm "Unrecognised special form" l
 
