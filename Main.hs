@@ -175,4 +175,4 @@ main :: IO ()
 main = do
   args <- getArgs
   let lispVal = (readExpr . unwords) args >>= eval
-  print lispVal
+  putStrLn $ extractValue $ trapError $ liftM show lispVal
