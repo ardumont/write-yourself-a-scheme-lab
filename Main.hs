@@ -168,6 +168,7 @@ primitives = [ ("+", numericBinOp (+))
              , ("string<=?", strBoolBinOp (<=))
              , ("string>=?", strBoolBinOp (>=))
              , ("car", car)
+             , ("cdr", cdr)
              ]
 
 -- | Given a binary operation on integer, reduce function from [LispVal]
@@ -219,6 +220,13 @@ car [List (x : _)]         = return x
 car [DottedList (x : _) _] = return x
 car [badArg]               = throwError $ TypeMismatch "pair" badArg
 car badArgList             = throwError $ NumArgs 1 badArgList
+
+cdr :: [LispVal] -> ThrowsError LispVal
+cdr [List (_ : xs)]         = return $ List xs
+cdr [DottedList [_] xs]     = return xs
+cdr [DottedList (_ : xs) t] = return $ DottedList xs t
+cdr [badArg]                = throwError $ TypeMismatch "pair" badArg
+cdr badArgList              = throwError $ NumArgs 1 badArgList
 
 main :: IO ()
 main = do
