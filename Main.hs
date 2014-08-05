@@ -131,6 +131,11 @@ eval v@(String _)             = return v
 eval v@(Number _)             = return v
 eval v@(Bool   _)             = return v
 eval (List [Atom "quote", v]) = return v
+eval (List [Atom "if", predicate, ifStmt, elseStmt]) = do
+  result <- eval predicate
+  case result of
+    Bool False -> eval elseStmt
+    _          -> eval ifStmt
 eval (List (Atom fn : args))  = mapM eval args >>= apply fn
 eval l@_                      = throwError $ BadSpecialForm "Unrecognised special form" l
 
