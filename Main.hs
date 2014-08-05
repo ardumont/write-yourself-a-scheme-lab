@@ -167,6 +167,7 @@ primitives = [ ("+", numericBinOp (+))
              , ("string?", strBoolBinOp (>))
              , ("string<=?", strBoolBinOp (<=))
              , ("string>=?", strBoolBinOp (>=))
+             , ("car", car)
              ]
 
 -- | Given a binary operation on integer, reduce function from [LispVal]
@@ -212,6 +213,12 @@ boolBinop unpacker op [h, t] = do
                                  right <- unpacker t
                                  return $ Bool $ op left right
 boolBinop _ _ no2Elements    = throwError $ NumArgs 2 no2Elements
+
+car :: [LispVal] -> ThrowsError LispVal
+car [List (x : _)]         = return x
+car [DottedList (x : _) _] = return x
+car [badArg]               = throwError $ TypeMismatch "pair" badArg
+car badArgList             = throwError $ NumArgs 1 badArgList
 
 main :: IO ()
 main = do
