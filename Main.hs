@@ -169,6 +169,7 @@ primitives = [ ("+", numericBinOp (+))
              , ("string>=?", strBoolBinOp (>=))
              , ("car", car)
              , ("cdr", cdr)
+             , ("cons", cons)
              ]
 
 -- | Given a binary operation on integer, reduce function from [LispVal]
@@ -227,6 +228,20 @@ cdr [DottedList [_] xs]     = return xs
 cdr [DottedList (_ : xs) t] = return $ DottedList xs t
 cdr [badArg]                = throwError $ TypeMismatch "pair" badArg
 cdr badArgList              = throwError $ NumArgs 1 badArgList
+
+cons :: [LispVal] -> ThrowsError LispVal
+cons [x, List []] = return $ List [x]
+cons [x, List xs] = return $ List (x : xs)
+cons [x, DottedList xs t] = return $ DottedList (x : xs) t
+cons [x0, x1] = return $ DottedList [x0] x1
+cons badArgList = throwError $ NumArgs 2 badArgList
+
+-- *Main> :main "(cons 'a '(a))"
+-- (a a)
+-- *Main> :main "(cons 'a '(b))"
+-- (a b)
+-- *Main> :main "(cons 'a '(b . 2))"
+-- (a b . 2)
 
 main :: IO ()
 main = do
