@@ -17,7 +17,7 @@ data LispVal = Atom String
 instance Show LispVal where show = showVal
 
 showVal :: LispVal -> String
-showVal (String s)                     = unwords ["\"", s, "\""]
+showVal (String s)                     = "\"" ++ s ++ "\""
 showVal (Bool True)                    = "#t"
 showVal (Bool False)                   = "#f"
 showVal (Atom name)                    = name
