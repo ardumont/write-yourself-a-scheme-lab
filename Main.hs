@@ -356,5 +356,9 @@ runRepl :: String -> String -> IO ()
 runRepl quitCommand strPrompt = until_ (== quitCommand) (readPrompt strPrompt) evalAndPrint
 
 main :: IO ()
-main =
-  runRepl ":q" "lisp>>> "
+main = do
+  args <- getArgs
+  case length args of
+    0 -> runRepl ":q" "lisp>>> "
+    1 -> evalAndPrint $ head args
+    _ -> putStrLn "This programs takes 0 or 1 argument."
