@@ -1,3 +1,4 @@
+{-# LANGUAGE ExistentialQuantification #-}
 module Main where
 
 import Text.ParserCombinators.Parsec hiding (spaces)
@@ -172,6 +173,7 @@ primitives = [ ("+", numericBinOp (+))
              , ("cons", cons)
              , ("eq?", eqv)
              , ("eqv?", eqv)
+             , ("equal?", equal)
              ]
 
 -- | Given a binary operation on integer, reduce function from [LispVal]
@@ -288,6 +290,38 @@ eqv badArgList = throwError $ NumArgs 2 badArgList
 -- #f
 -- *Main> :main "(eqv 1 '(1))"
 -- #f
+
+data Unpacker = forall a. Eq a => AnyUnpacker (LispVal -> ThrowsError a)
+
+-- | Determines if 2 lispVals are equals when they are unpacked
+unpackEquals :: LispVal -> LispVal -> Unpacker -> ThrowsError Bool
+unpackEquals l0 l1 (AnyUnpacker unpackFn) = do
+  lispVal0 <- unpackFn l0
+  lispVal1 <- unpackFn l1
+  return $ lispVal0 == lispVal1
+  `catchError`
+  const (return False)
+
+-- | Determines if 2 lispVals are loosely equals (coercion)
+equal :: [LispVal] -> ThrowsError LispVal
+equal l@[l0, l1] = do
+  primitiveEqual <- liftM or $ mapM (unpackEquals l0 l1) [ AnyUnpacker unpackNum
+                                                         , AnyUnpacker unpackStr
+                                                         , AnyUnpacker unpackBool]
+  (Bool eqvEqual) <- eqv l
+  return $ Bool $ primitiveEqual || eqvEqual
+equal badArgList = throwError $ NumArgs 2 badArgList
+
+-- *Main> :main "(equal? '(1) '(1))"
+-- #t
+-- *Main> :main "(equal? '(1) '(1 2))"
+-- #f
+-- *Main> :main "(equal? '1 \"1\")"
+-- #t
+-- *Main> :main "(eqv? '1 \"1\")"
+-- #f
+-- *Main> :main "(eqv? '1)"
+-- Expected 2 args; found values 1
 
 main :: IO ()
 main = do
