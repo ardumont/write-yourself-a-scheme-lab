@@ -339,6 +339,5 @@ readPrompt prompt = flushStr prompt >> getLine
 main :: IO ()
 main = do
   expr <- readPrompt "tony's scheme> "
-  let lispVal = readExpr expr >>= eval
-  putStrLn $ extractValue $ trapError $ liftM show lispVal
+  putStrLn $ extractValue $ trapError $ liftM show $ readExpr expr >>= eval
   main
