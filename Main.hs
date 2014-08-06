@@ -336,8 +336,16 @@ flushStr s = putStr s >> hFlush stdout
 readPrompt :: String -> IO String
 readPrompt prompt = flushStr prompt >> getLine
 
+-- | Evaluate a string expression and return the result
+evalString :: String -> IO String
+evalString expr = return $ extractValue $ trapError $ liftM show $ readExpr expr >>= eval
+
+-- | Eval and print
+evalAndPrint :: String -> IO ()
+evalAndPrint expr = evalString expr >>= putStrLn
+
 main :: IO ()
-main = do
-  expr <- readPrompt "tony's scheme> "
-  putStrLn $ extractValue $ trapError $ liftM show $ readExpr expr >>= eval
+main =
+  readPrompt "lisp>>> " >>=
+  evalAndPrint >>
   main
