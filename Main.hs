@@ -4,6 +4,7 @@ module Main where
 import Text.ParserCombinators.Parsec hiding (spaces)
 import System.Environment
 import Control.Monad.Error
+import System.IO hiding (try)
 
 -------------- types
 
@@ -327,8 +328,17 @@ equal badArgList = throwError $ NumArgs 2 badArgList
 -- *Main> :main "(equal? '1)"
 -- Expected 2 args; found values 1
 
+-- | Display a string and force writing on stdout
+flushStr :: String -> IO ()
+flushStr s = putStr s >> hFlush stdout
+
+-- | Display a prompt and wait for user's input
+readPrompt :: String -> IO String
+readPrompt prompt = flushStr prompt >> getLine
+
 main :: IO ()
 main = do
-  args <- getArgs
-  let lispVal = (readExpr . unwords) args >>= eval
+  expr <- readPrompt "tony's scheme> "
+  let lispVal = readExpr expr >>= eval
   putStrLn $ extractValue $ trapError $ liftM show lispVal
+  main
