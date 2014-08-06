@@ -5,6 +5,7 @@ import Text.ParserCombinators.Parsec hiding (spaces)
 import System.Environment
 import Control.Monad.Error
 import System.IO hiding (try)
+import Control.Monad (unless)
 
 -------------- types
 
@@ -344,8 +345,14 @@ evalString expr = return $ extractValue $ trapError $ liftM show $ readExpr expr
 evalAndPrint :: String -> IO ()
 evalAndPrint expr = evalString expr >>= putStrLn
 
+-- | REPL
+repl :: String -> IO ()
+repl outCommand =
+  readPrompt "lisp>>> " >>=
+  \ input -> if outCommand == input
+             then return ()
+             else evalAndPrint input >> repl outCommand
+
 main :: IO ()
 main =
-  readPrompt "lisp>>> " >>=
-  evalAndPrint >>
-  main
+  repl ":q"
