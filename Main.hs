@@ -349,9 +349,8 @@ evalAndPrint expr = evalString expr >>= putStrLn
 repl :: String -> IO ()
 repl outCommand =
   readPrompt "lisp>>> " >>=
-  \ input -> if outCommand == input
-             then return ()
-             else evalAndPrint input >> repl outCommand
+  \ input -> unless (outCommand == input)
+                    (evalAndPrint input >> repl outCommand)
 
 main :: IO ()
 main =
