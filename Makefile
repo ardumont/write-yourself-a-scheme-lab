@@ -38,4 +38,4 @@ run-nix-shell:
 	nix-shell --pure write-yourself-a-scheme-lab.nix
 
 ghc:
-	ghc --make -o Main Main.hs
+	ghc --make -fglasgow-exts -o Main Main.hs

@@ -320,7 +320,7 @@ equal badArgList = throwError $ NumArgs 2 badArgList
 -- #t
 -- *Main> :main "(eqv? '1 \"1\")"
 -- #f
--- *Main> :main "(eqv? '1)"
+-- *Main> :main "(equal? '1)"
 -- Expected 2 args; found values 1
 
 main :: IO ()
