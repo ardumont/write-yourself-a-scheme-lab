@@ -133,11 +133,14 @@ eval v@(String _)             = return v
 eval v@(Number _)             = return v
 eval v@(Bool   _)             = return v
 eval (List [Atom "quote", v]) = return v
-eval (List [Atom "if", predicate, ifStmt, elseStmt]) =
-  eval predicate >>=
-  \ result -> eval $ if result /= Bool False then ifStmt else elseStmt
 eval (List (Atom fn : args))  = mapM eval args >>= apply fn
 eval l@_                      = throwError $ BadSpecialForm "Unrecognised special form" l
+
+ifScheme :: [LispVal] -> ThrowsError LispVal
+ifScheme [predicate, ifStmt, elseStmt] =
+  eval predicate >>=
+  \ result -> eval $ if result /= Bool False then ifStmt else elseStmt
+ifScheme a@_ = throwError $ NumArgs 3 a
 
 type PrimitiveName = String
 
@@ -174,6 +177,7 @@ primitives = [ ("+", numericBinOp (+))
              , ("eq?", eqv)
              , ("eqv?", eqv)
              , ("equal?", equal)
+             , ("if", ifScheme)
              ]
 
 -- | Given a binary operation on integer, reduce function from [LispVal]
