@@ -345,13 +345,16 @@ evalString expr = return $ extractValue $ trapError $ liftM show $ readExpr expr
 evalAndPrint :: String -> IO ()
 evalAndPrint expr = evalString expr >>= putStrLn
 
--- | REPL
-repl :: String -> IO ()
-repl outCommand =
-  readPrompt "lisp>>> " >>=
-  \ input -> unless (outCommand == input)
-                    (evalAndPrint input >> repl outCommand)
+-- | Repeat indefinitely
+until_ :: Monad m => (t -> Bool) -> m t -> (t -> m ()) -> m ()
+until_ predicate prompt action = do
+  result <- prompt
+  unless (predicate result) $ action result >> until_ predicate prompt action
+
+-- | Start a repl
+runRepl :: String -> String -> IO ()
+runRepl quitCommand strPrompt = until_ (== quitCommand) (readPrompt strPrompt) evalAndPrint
 
 main :: IO ()
 main =
-  repl ":q"
+  runRepl ":q" "lisp>>> "
