@@ -29,49 +29,6 @@ showVal (Number n)                     = show n
 showVal (List lispVals)                = "(" ++ unwordsList lispVals ++ ")"
 showVal (DottedList headVals tailVals) = "(" ++ unwordsList headVals ++ " . " ++ showVal tailVals ++ ")"
 
--- To permit mutable variables
-type Env = IORef [(String, IORef LispVal)]
-
--- | Init mutable environment
-nullEnv :: IO Env
-nullEnv = newIORef []
-
--- | Error in multiple monads words
-type IOThrowsError = ErrorT LispError IO
-
--- | Lift
-liftThrows :: ThrowsError a -> IOThrowsError a
-liftThrows (Left err) = throwError err
-liftThrows (Right v)  = return v
-
--- | Runs the top level IOThrowsError action and returns the IO computation
-runIOThrows :: IOThrowsError String -> IO String
-runIOThrows action = liftM extractValue $ runErrorT (trapError action)
-
-type VariableName = String
-
--- | Determine if a variable is bound in the environment env
-isBound :: Env -> VariableName -> IO Bool
-isBound envRef var = liftM (isJust . lookup var) (readIORef envRef)
-
--- | Primitive - Return the variable from the environment envRef
-getVar :: Env -> VariableName -> IOThrowsError LispVal
-getVar envRef var =
-  let readRef = liftIO . readIORef in
-  do env <- readRef envRef
-     maybe (throwError $ UnboundVar "Unbound variable" var)
-           readRef
-           (lookup var env)
-
--- | Primitive - Set the variable in the environment
-setVar :: Env -> VariableName -> LispVal -> IOThrowsError LispVal
-setVar envRef var lispval = do
-  env <- (liftIO . readIORef) envRef
-  maybe (throwError $ UnboundVar "Unbound variable" var)
-        (liftIO . (`writeIORef` lispval))
-        (lookup var env)
-  return lispval
-
 -- | The possible errors
 data LispError = NumArgs Integer [LispVal]
                | TypeMismatch String LispVal
@@ -372,6 +329,49 @@ equal badArgList = throwError $ NumArgs 2 badArgList
 -- #f
 -- *Main> :main "(equal? '1)"
 -- Expected 2 args; found values 1
+
+-- To permit mutable variables
+type Env = IORef [(String, IORef LispVal)]
+
+-- | Init mutable environment
+nullEnv :: IO Env
+nullEnv = newIORef []
+
+-- | Error in multiple monads words
+type IOThrowsError = ErrorT LispError IO
+
+-- | Lift
+liftThrows :: ThrowsError a -> IOThrowsError a
+liftThrows (Left err) = throwError err
+liftThrows (Right v)  = return v
+
+-- | Runs the top level IOThrowsError action and returns the IO computation
+runIOThrows :: IOThrowsError String -> IO String
+runIOThrows action = liftM extractValue $ runErrorT (trapError action)
+
+type VariableName = String
+
+-- | Determine if a variable is bound in the environment env
+isBound :: Env -> VariableName -> IO Bool
+isBound envRef var = liftM (isJust . lookup var) (readIORef envRef)
+
+-- | Primitive - Return the variable from the environment envRef
+getVar :: Env -> VariableName -> IOThrowsError LispVal
+getVar envRef var =
+  let readRef = liftIO . readIORef in
+  do env <- readRef envRef
+     maybe (throwError $ UnboundVar "Unbound variable" var)
+           readRef
+           (lookup var env)
+
+-- | Primitive - Set the variable in the environment
+setVar :: Env -> VariableName -> LispVal -> IOThrowsError LispVal
+setVar envRef var lispval = do
+  env <- (liftIO . readIORef) envRef
+  maybe (throwError $ UnboundVar "Unbound variable" var)
+        (liftIO . (`writeIORef` lispval))
+        (lookup var env)
+  return lispval
 
 -- | Display a string and force writing on stdout
 flushStr :: String -> IO ()
