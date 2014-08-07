@@ -131,16 +131,16 @@ readExpr input = case parse parseExpr "lisp" input of
   Left err  -> throwError $ Parser err
   Right val -> return val
 
-eval :: LispVal -> ThrowsError LispVal
-eval v@(String _)             = return v
-eval v@(Number _)             = return v
-eval v@(Bool   _)             = return v
-eval (List [Atom "quote", v]) = return v
-eval (List [Atom "if", predicate, ifStmt, elseStmt]) =
-  eval predicate >>=
-  \ result -> eval $ if result /= Bool False then ifStmt else elseStmt
-eval (List (Atom fn : args))  = mapM eval args >>= apply fn
-eval l@_                      = throwError $ BadSpecialForm "Unrecognised special form" l
+eval :: Env -> LispVal -> ThrowsError LispVal
+eval _ v@(String _)             = return v
+eval _ v@(Number _)             = return v
+eval _ v@(Bool   _)             = return v
+eval _ (List [Atom "quote", v]) = return v
+eval env (List [Atom "if", predicate, ifStmt, elseStmt]) =
+  eval env predicate >>=
+  \ result -> eval env $ if result /= Bool False then ifStmt else elseStmt
+eval env (List (Atom fn : args)) = mapM (eval env) args >>= apply fn
+eval _ l@_                       = throwError $ BadSpecialForm "Unrecognised special form" l
 
 type PrimitiveName = String
 
@@ -398,12 +398,12 @@ readPrompt :: String -> IO String
 readPrompt prompt = flushStr prompt >> getLine
 
 -- | Evaluate a string expression and return the result
-evalString :: String -> IO String
-evalString expr = return $ extractValue $ trapError $ liftM show $ readExpr expr >>= eval
+evalString :: Env -> String -> IO String
+evalString env expr = return $ extractValue $ trapError $ liftM show $ readExpr expr >>= eval env
 
 -- | Eval and print
-evalAndPrint :: String -> IO ()
-evalAndPrint expr = evalString expr >>= putStrLn
+evalAndPrint :: Env -> String -> IO ()
+evalAndPrint env expr = evalString env expr >>= putStrLn
 
 -- | Repeat indefinitely
 until_ :: Monad m => (t -> Bool) -> m t -> (t -> m ()) -> m ()
@@ -413,14 +413,17 @@ until_ predicate prompt action = do
 
 -- | Start a repl
 runRepl :: String -> String -> IO ()
-runRepl quitCommand strPrompt = until_ (== quitCommand) (readPrompt strPrompt) evalAndPrint
+runRepl quitCommand strPrompt = nullEnv >>= until_ (== quitCommand) (readPrompt strPrompt) . evalAndPrint
+
+runOne :: String -> IO ()
+runOne expr = nullEnv >>= flip evalAndPrint expr
 
 main :: IO ()
 main = do
   args <- getArgs
   case length args of
     0 -> runRepl ":q" "lisp>>> "
-    1 -> evalAndPrint $ head args
+    1 -> runOne $ head args
     _ -> putStrLn "This programs takes 0 or 1 argument."
 
 -- *Main> :main "(cons 2 3)"
