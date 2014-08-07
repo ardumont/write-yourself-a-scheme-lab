@@ -131,15 +131,18 @@ readExpr input = case parse parseExpr "lisp" input of
   Left err  -> throwError $ Parser err
   Right val -> return val
 
-eval :: Env -> LispVal -> ThrowsError LispVal
+eval :: Env -> LispVal -> IOThrowsError LispVal
 eval _ v@(String _)             = return v
 eval _ v@(Number _)             = return v
 eval _ v@(Bool   _)             = return v
+eval env (Atom var)             = getVar env var
 eval _ (List [Atom "quote", v]) = return v
 eval env (List [Atom "if", predicate, ifStmt, elseStmt]) =
   eval env predicate >>=
   \ result -> eval env $ if result /= Bool False then ifStmt else elseStmt
-eval env (List (Atom fn : args)) = mapM (eval env) args >>= apply fn
+eval env (List [Atom "set!", Atom var, form]) = eval env form >>= setVar env var
+eval env (List [Atom "define", Atom var, form]) = eval env form >>= defineVar env var
+eval env (List (Atom fn : args)) = mapM (eval env) args >>= liftThrows . apply fn
 eval _ l@_                       = throwError $ BadSpecialForm "Unrecognised special form" l
 
 type PrimitiveName = String
@@ -399,7 +402,7 @@ readPrompt prompt = flushStr prompt >> getLine
 
 -- | Evaluate a string expression and return the result
 evalString :: Env -> String -> IO String
-evalString env expr = return $ extractValue $ trapError $ liftM show $ readExpr expr >>= eval env
+evalString env expr = runIOThrows $ liftM show $ liftThrows (readExpr expr) >>= eval env
 
 -- | Eval and print
 evalAndPrint :: Env -> String -> IO ()
