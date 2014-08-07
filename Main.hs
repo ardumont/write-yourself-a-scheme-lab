@@ -1,12 +1,12 @@
 {-# LANGUAGE ExistentialQuantification #-}
 module Main where
 
-import Text.ParserCombinators.Parsec hiding (spaces)
-import System.Environment
 import Control.Monad.Error
-import System.IO hiding (try)
 import Data.IORef
 import Data.Maybe (isJust)
+import System.Environment
+import System.IO hiding (try)
+import Text.ParserCombinators.Parsec hiding (spaces)
 
 -------------- types
 
