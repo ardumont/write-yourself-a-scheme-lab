@@ -5,7 +5,8 @@ import Text.ParserCombinators.Parsec hiding (spaces)
 import System.Environment
 import Control.Monad.Error
 import System.IO hiding (try)
-import Control.Monad (unless)
+import Data.IORef
+import Data.Maybe (isJust)
 
 -------------- types
 
@@ -27,6 +28,40 @@ showVal (Atom name)                    = name
 showVal (Number n)                     = show n
 showVal (List lispVals)                = "(" ++ unwordsList lispVals ++ ")"
 showVal (DottedList headVals tailVals) = "(" ++ unwordsList headVals ++ " . " ++ showVal tailVals ++ ")"
+
+-- To permit mutable variables
+type Env = IORef [(String, IORef LispVal)]
+
+-- | Init mutable environment
+nullEnv :: IO Env
+nullEnv = newIORef []
+
+-- | Error in multiple monads words
+type IOThrowsError = ErrorT LispError IO
+
+-- | Lift
+liftThrows :: ThrowsError a -> IOThrowsError a
+liftThrows (Left err) = throwError err
+liftThrows (Right v)  = return v
+
+-- | Runs the top level IOThrowsError action and returns the IO computation
+runIOThrows :: IOThrowsError String -> IO String
+runIOThrows action = liftM extractValue $ runErrorT (trapError action)
+
+type VariableName = String
+
+-- | Determine if a variable is bound in the environment env
+isBound :: Env -> VariableName -> IO Bool
+isBound envRef var = liftM (isJust . lookup var) (readIORef envRef)
+
+-- | Return the variable from the environment envRef
+getVar :: Env -> VariableName -> IOThrowsError LispVal
+getVar envRef var =
+  let readRef = liftIO . readIORef in
+  do env <- readRef envRef
+     maybe (throwError $ UnboundVar "Unbound variable" var)
+           readRef
+           (lookup var env)
 
 -- | The possible errors
 data LispError = NumArgs Integer [LispVal]
