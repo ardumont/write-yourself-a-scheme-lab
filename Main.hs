@@ -362,3 +362,15 @@ main = do
     0 -> runRepl ":q" "lisp>>> "
     1 -> evalAndPrint $ head args
     _ -> putStrLn "This programs takes 0 or 1 argument."
+
+-- *Main> :main "(cons 2 3)"
+-- (2 . 3)
+-- *Main> :main
+-- lisp>>> (cons 2 3)
+-- (2 . 3)
+-- lisp>>> (cons 2 '())
+-- (2)
+-- lisp>>> (cons 2 '(3))
+-- (2 3)
+-- lisp>>> :q
+-- *Main> :browse Data.IORef
