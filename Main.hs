@@ -385,6 +385,14 @@ defineVar envRef var lispVal = do
          writeIORef envRef $ (var, newioref) : env
          return lispVal
 
+-- | Bind a list of variables
+bindVars :: Env -> [(VariableName, LispVal)] -> IO Env
+bindVars envRef bindings =
+  readIORef envRef >>= extendEnv >>= newIORef
+  where extendEnv env = liftM (++ env) (mapM addBinding bindings)
+        addBinding (var, value) = do ref <- newIORef value
+                                     return (var, ref)
+
 -- | Display a string and force writing on stdout
 flushStr :: String -> IO ()
 flushStr s = putStr s >> hFlush stdout
