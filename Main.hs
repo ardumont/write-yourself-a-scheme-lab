@@ -366,12 +366,24 @@ getVar envRef var =
 
 -- | Primitive - Set the variable in the environment
 setVar :: Env -> VariableName -> LispVal -> IOThrowsError LispVal
-setVar envRef var lispval = do
+setVar envRef var lispVal = do
   env <- (liftIO . readIORef) envRef
   maybe (throwError $ UnboundVar "Unbound variable" var)
-        (liftIO . (`writeIORef` lispval))
+        (liftIO . (`writeIORef` lispVal))
         (lookup var env)
-  return lispval
+  return lispVal
+
+-- | Update a variable if already defined or create one
+defineVar :: Env -> VariableName -> LispVal -> IOThrowsError LispVal
+defineVar envRef var lispVal = do
+  bound <- liftIO $ isBound envRef var
+  if bound
+  then setVar envRef var lispVal
+  else liftIO $ do
+         newioref <- newIORef lispVal
+         env      <- readIORef envRef
+         writeIORef envRef $ (var, newioref) : env
+         return lispVal
 
 -- | Display a string and force writing on stdout
 flushStr :: String -> IO ()
