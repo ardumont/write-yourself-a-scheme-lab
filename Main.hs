@@ -54,7 +54,7 @@ type VariableName = String
 isBound :: Env -> VariableName -> IO Bool
 isBound envRef var = liftM (isJust . lookup var) (readIORef envRef)
 
--- | Return the variable from the environment envRef
+-- | Primitive - Return the variable from the environment envRef
 getVar :: Env -> VariableName -> IOThrowsError LispVal
 getVar envRef var =
   let readRef = liftIO . readIORef in
@@ -62,6 +62,15 @@ getVar envRef var =
      maybe (throwError $ UnboundVar "Unbound variable" var)
            readRef
            (lookup var env)
+
+-- | Primitive - Set the variable in the environment
+setVar :: Env -> VariableName -> LispVal -> IOThrowsError LispVal
+setVar envRef var lispval = do
+  env <- (liftIO . readIORef) envRef
+  maybe (throwError $ UnboundVar "Unbound variable" var)
+        (liftIO . (`writeIORef` lispval))
+        (lookup var env)
+  return lispval
 
 -- | The possible errors
 data LispError = NumArgs Integer [LispVal]
