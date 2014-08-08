@@ -32,6 +32,14 @@ showVal (Atom name)                    = name
 showVal (Number n)                     = show n
 showVal (List lispVals)                = "(" ++ unwordsList lispVals ++ ")"
 showVal (DottedList headVals tailVals) = "(" ++ unwordsList headVals ++ " . " ++ showVal tailVals ++ ")"
+showVal (PrimitiveFunc _)              = "<primitive>"
+showVal (Func { params = args
+              , varargs = vararg
+              , body = _
+              , closure = _})          = "(lambda (" ++ unwords (map show args) ++
+                                           (case vararg of
+                                             Nothing  -> ""
+                                             Just arg -> " . " ++ arg) ++ ") ...)"
 
 -- | The possible errors
 data LispError = NumArgs Integer [LispVal]
