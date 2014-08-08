@@ -16,7 +16,11 @@ data LispVal = Atom String
              | Number Integer
              | String String
              | Bool Bool
-             deriving Eq
+             | PrimitiveFunc ([LispVal] -> ThrowsError LispVal)
+             | Func { params :: [String]
+                    , varargs :: Maybe String
+                    , body :: LispVal
+                    , closure :: Env}
 
 instance Show LispVal where show = showVal
 
@@ -139,7 +143,9 @@ eval env (Atom var)             = getVar env var
 eval _ (List [Atom "quote", v]) = return v
 eval env (List [Atom "if", predicate, ifStmt, elseStmt]) =
   eval env predicate >>=
-  \ result -> eval env $ if result /= Bool False then ifStmt else elseStmt
+  \ result -> eval env $ case result of
+                           Bool False -> ifStmt
+                           _          -> elseStmt
 eval env (List [Atom "set!", Atom var, form]) = eval env form >>= setVar env var
 eval env (List [Atom "define", Atom var, form]) = eval env form >>= defineVar env var
 eval env (List (Atom fn : args)) = mapM (eval env) args >>= liftThrows . apply fn
