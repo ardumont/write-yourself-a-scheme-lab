@@ -188,6 +188,15 @@ primitiveBindings :: IO Env
 primitiveBindings = nullEnv >>= flip bindVars (map makePrimitiveFunc primitives)
   where makePrimitiveFunc (vname, lispval) = (vname,  PrimitiveFunc lispval)
 
+makeFunc :: Maybe String -> Env -> [LispVal] -> [LispVal] -> IOThrowsError LispVal
+makeFunc varargs env params body = return $ Func (map showVal params) varargs body env
+
+makeNormalFunc :: Env -> [LispVal] -> [LispVal] -> IOThrowsError LispVal
+makeNormalFunc = makeFunc Nothing
+
+makeVarArgs :: LispVal -> Env -> [LispVal] -> [LispVal] -> IOThrowsError LispVal
+makeVarArgs = makeFunc . Just . showVal
+
 -- | Supported primitive functions
 primitives :: [(PrimitiveName, [LispVal] -> ThrowsError LispVal)]
 primitives = [ ("+", numericBinOp (+))
