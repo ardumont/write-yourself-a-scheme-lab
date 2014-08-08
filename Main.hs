@@ -19,7 +19,7 @@ data LispVal = Atom String
              | PrimitiveFunc ([LispVal] -> ThrowsError LispVal)
              | Func { params :: [String]
                     , varargs :: Maybe String
-                    , body :: LispVal
+                    , body :: [LispVal]
                     , closure :: Env}
 
 instance Show LispVal where show = showVal
@@ -158,6 +158,22 @@ apply :: PrimitiveName -> [LispVal] -> ThrowsError LispVal
 apply fn args = maybe (throwError $ NotFunction "Unrecognised primitive function" fn)
                       ($ args)
                       (lookup fn primitives)
+
+apply' :: LispVal -> [LispVal] -> IOThrowsError LispVal
+apply' (PrimitiveFunc fn) args                 = liftThrows $ fn args
+apply' (Func { params = params
+             , varargs = varargs
+             , body = body
+             , closure = closure}) args =
+  if num params /= num args
+  then throwError $ NumArgs (num params) args
+  else liftIO (bindVars closure $ zip params args) >>= bindVarArgs varargs >>= evalBody
+  where num = toInteger . length
+        evalBody env = liftM last $ mapM (eval env) body
+        remainingArgs = drop (length params) args
+        bindVarArgs arg env = case arg of
+          Just argName -> liftIO $ bindVars env [(argName, List remainingArgs)]
+          _            -> return env
 
 -- | Supported primitive functions
 primitives :: [(PrimitiveName, [LispVal] -> ThrowsError LispVal)]
