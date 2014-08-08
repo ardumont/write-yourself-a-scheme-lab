@@ -183,6 +183,11 @@ apply' (Func { params = params
           Just argName -> liftIO $ bindVars env [(argName, List remainingArgs)]
           _            -> return env
 
+-- | Load primitive functions in Env
+primitiveBindings :: IO Env
+primitiveBindings = nullEnv >>= flip bindVars (map makePrimitiveFunc primitives)
+  where makePrimitiveFunc (vname, lispval) = (vname,  PrimitiveFunc lispval)
+
 -- | Supported primitive functions
 primitives :: [(PrimitiveName, [LispVal] -> ThrowsError LispVal)]
 primitives = [ ("+", numericBinOp (+))
@@ -446,10 +451,12 @@ until_ predicate prompt action = do
 
 -- | Start a repl
 runRepl :: String -> String -> IO ()
-runRepl quitCommand strPrompt = nullEnv >>= until_ (== quitCommand) (readPrompt strPrompt) . evalAndPrint
+runRepl quitCommand strPrompt =
+  primitiveBindings >>=
+  until_ (== quitCommand) (readPrompt strPrompt) . evalAndPrint
 
 runOne :: String -> IO ()
-runOne expr = nullEnv >>= flip evalAndPrint expr
+runOne expr = primitiveBindings >>= flip evalAndPrint expr
 
 main :: IO ()
 main = do
