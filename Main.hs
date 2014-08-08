@@ -143,6 +143,15 @@ readExpr input = case parse parseExpr "lisp" input of
   Left err  -> throwError $ Parser err
   Right val -> return val
 
+makeFunc :: Maybe String -> Env -> [LispVal] -> [LispVal] -> IOThrowsError LispVal
+makeFunc varargs env params body = return $ Func (map showVal params) varargs body env
+
+makeNormalFunc :: Env -> [LispVal] -> [LispVal] -> IOThrowsError LispVal
+makeNormalFunc = makeFunc Nothing
+
+makeVarArgs :: LispVal -> Env -> [LispVal] -> [LispVal] -> IOThrowsError LispVal
+makeVarArgs = makeFunc . Just . showVal
+
 eval :: Env -> LispVal -> IOThrowsError LispVal
 eval _ v@(String _)             = return v
 eval _ v@(Number _)             = return v
@@ -156,20 +165,25 @@ eval env (List [Atom "if", predicate, ifStmt, elseStmt]) =
                            _          -> elseStmt
 eval env (List [Atom "set!", Atom var, form]) = eval env form >>= setVar env var
 eval env (List [Atom "define", Atom var, form]) = eval env form >>= defineVar env var
-eval env (List (Atom fn : args)) = mapM (eval env) args >>= liftThrows . apply fn
-eval _ l@_                       = throwError $ BadSpecialForm "Unrecognised special form" l
+eval env (List (Atom "define" : List (Atom var : params) : body)) = -- let
+  makeNormalFunc env params body >>= defineVar env var
+eval env (List (Atom "define" : DottedList (Atom var : params) varargs : body)) =
+  makeVarArgs varargs env params body >>= defineVar env var
+eval env (List (Atom "lambda" : List params : body)) =
+  makeNormalFunc env params body
+eval env (List (Atom "lambda" : DottedList params varargs : body)) =
+  makeVarArgs varargs env params body
+eval env (List (Atom "lambda" : varargs@(Atom _) : body)) =
+  makeVarArgs varargs env [] body
+eval env (List (function : args)) = do
+  fn <- eval env function
+  argVals <- mapM (eval env) args
+  apply fn argVals
+eval _ l@_ = throwError $ BadSpecialForm "Unrecognised special form" l
 
-type PrimitiveName = String
-
--- | Given a function name, and a LispVal, return a LispVal
-apply :: PrimitiveName -> [LispVal] -> ThrowsError LispVal
-apply fn args = maybe (throwError $ NotFunction "Unrecognised primitive function" fn)
-                      ($ args)
-                      (lookup fn primitives)
-
-apply' :: LispVal -> [LispVal] -> IOThrowsError LispVal
-apply' (PrimitiveFunc fn) args                 = liftThrows $ fn args
-apply' (Func { params = params
+apply :: LispVal -> [LispVal] -> IOThrowsError LispVal
+apply (PrimitiveFunc fn) args = liftThrows $ fn args
+apply (Func { params = params
              , varargs = varargs
              , body = body
              , closure = closure}) args =
@@ -188,14 +202,7 @@ primitiveBindings :: IO Env
 primitiveBindings = nullEnv >>= flip bindVars (map makePrimitiveFunc primitives)
   where makePrimitiveFunc (vname, lispval) = (vname,  PrimitiveFunc lispval)
 
-makeFunc :: Maybe String -> Env -> [LispVal] -> [LispVal] -> IOThrowsError LispVal
-makeFunc varargs env params body = return $ Func (map showVal params) varargs body env
-
-makeNormalFunc :: Env -> [LispVal] -> [LispVal] -> IOThrowsError LispVal
-makeNormalFunc = makeFunc Nothing
-
-makeVarArgs :: LispVal -> Env -> [LispVal] -> [LispVal] -> IOThrowsError LispVal
-makeVarArgs = makeFunc . Just . showVal
+type PrimitiveName = String
 
 -- | Supported primitive functions
 primitives :: [(PrimitiveName, [LispVal] -> ThrowsError LispVal)]
@@ -486,3 +493,54 @@ main = do
 -- (2 3)
 -- lisp>>> :q
 -- *Main> :browse Data.IORef
+
+-- *Main> :main
+-- lisp>>> (+ 1 1)
+-- 2
+-- lisp>>> (+ 1 10)
+-- 11
+-- lisp>>> (define (f x y) (+ x y))
+-- (lambda ("x" "y") ...)
+-- lisp>>> (f 1 2)
+-- 3
+-- lisp>>> (define x 10)
+-- 10
+-- lisp>>> (f 1 2)
+-- 3
+-- lisp>>> (f 10 2)
+-- 12
+-- lisp>>> (f 10 x)
+-- 20
+-- lisp>>> ((lambda (x y) (* x y)) 10 10)
+-- 100
+-- lisp>>> ((lambda (x y) (* x y)) 10 x)ef
+-- 100
+-- lisp>>> ((lambda (x y) (* x y)) 10 x)
+-- 100
+-- lisp>>> (define x 20)
+-- 20
+-- lisp>>> ((lambda (x y) (* x y)) 10 x)ef
+-- 200
+-- lisp>>> (set! x 200)
+-- 200
+-- lisp>>> ((lambda (x y) (* x y)) 10 x)
+-- 2000
+-- lisp>>> (define (f) "hello")
+-- (lambda () ...)
+-- lisp>>> f
+-- (lambda () ...)
+-- lisp>>> (f)
+-- "hello"
+-- lisp>>> (define (mute!) (set! x (+ x 20)))
+-- (lambda () ...)
+-- lisp>>> x
+-- 200
+-- lisp>>> (mute!)
+-- 220
+-- lisp>>> x
+-- 220
+-- lisp>>> (mute!)
+-- 240
+-- lisp>>> x
+-- 240
+-- lisp>>> :q
