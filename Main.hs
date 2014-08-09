@@ -171,8 +171,8 @@ eval _ (List [Atom "quote", v]) = return v
 eval env (List [Atom "if", predicate, ifStmt, elseStmt]) =
   eval env predicate >>=
   \ result -> eval env $ case result of
-                           Bool False -> ifStmt
-                           _          -> elseStmt
+                           Bool False -> elseStmt
+                           _          -> ifStmt
 eval env (List [Atom "set!", Atom var, form]) = eval env form >>= setVar env var
 eval env (List [Atom "define", Atom var, form]) = eval env form >>= defineVar env var
 eval env (List (Atom "define" : List (Atom var : params) : body)) = -- let
