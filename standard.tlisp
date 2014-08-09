@@ -1,0 +1,63 @@
+(define (not x) (if x #f #t))
+
+(define (null? x) (eqv? x '()))
+
+(define (list . objs) objs)
+
+(define (id o) o)
+
+(define (flip func) (lambda (x0 x1) (func x1 x0)))
+
+(define (curry func x0) (lambda (x) (apply func (cons x0 (list x)))))
+
+(define (compose f g) (lambda (x) (f (apply g x))))
+
+(define zero? (curry = 0))
+
+(define pos? (curry > 0))
+
+(define neg? (curry < 0))
+
+(define (odd? num) (= (mod num 2) 1))
+
+(define (even? num) (= (mod num 2) 0))
+
+(define (foldr func end lst)
+  (if (null? lst)
+      end
+      (func (car lst) (foldr func end (cdr lst)))))
+
+(define (foldl func acc lst)
+  (if (null? lst)
+      acc
+      (foldl func (func acc (car lst)) (cdr lst))))
+
+(define fold foldl)
+
+(define reduce foldr)
+
+(define (unfold func init pred)
+  (cons init (if (pred init) '() (unfold func (func init) pred))))
+
+(define (sum . lst) (fold + 0 lst))
+
+(define (product . lst) (fold * 1 lst))
+
+(define (and . lst) (fold && #t lst))
+
+(define (or . lst) (fold || #f lst))
+
+(define (max first . num-list)
+  (fold (lambda (old new) (if (> old new) old new)) first num-list))
+
+(define (min first . num-list)
+  (fold (lambda (old new) (if (< old new) old new)) first num-list))
+
+(define (length lst)
+  (fold (lambda (x y) (+ 1 x)) 0 lst))
+
+(define (reverse lst)
+  (fold (flip cons) '() lst))
+
+(define (map func lst)
+  (foldr (lambda (x y) (cons (func x) y)) '() lst))
