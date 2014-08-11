@@ -52,6 +52,7 @@ executable write-yourself-a-scheme-lab
   
   -- Modules included in this executable, other than Main.
   other-modules: Scheme/Type.hs
+               , Scheme/Parser.hs
   
   -- LANGUAGE extensions used by modules in this package.
   -- other-extensions:    
