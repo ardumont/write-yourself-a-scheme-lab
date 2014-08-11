@@ -55,6 +55,7 @@ executable write-yourself-a-scheme-lab
                , Scheme/Parser.hs
                , Scheme/REPL.hs
                , Scheme/Primitive.hs
+               , Scheme/IOPrimitive.hs
   
   -- LANGUAGE extensions used by modules in this package.
   -- other-extensions:    

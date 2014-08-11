@@ -86,3 +86,8 @@ type VariableName = String
 
 -- | A primitive function's name is a string
 type PrimitiveName = String
+
+-- | Lift
+liftThrows :: ThrowsError a -> IOThrowsError a
+liftThrows (Left err) = throwError err
+liftThrows (Right v)  = return v
