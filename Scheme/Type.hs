@@ -80,3 +80,9 @@ type IOThrowsError = ErrorT LispError IO
 
 -- | Environment to permit mutable variables
 type Env = IORef [(String, IORef LispVal)]
+
+-- | Variable name is a string
+type VariableName = String
+
+-- | A primitive function's name is a string
+type PrimitiveName = String
