@@ -91,13 +91,11 @@ setVar envRef var lispVal = do
 defineVar :: Env -> VariableName -> LispVal -> IOThrowsError LispVal
 defineVar envRef var lispVal = do
   bound <- liftIO $ isBound envRef var
-  if bound
-  then setVar envRef var lispVal
-  else liftIO $ do
-         newioref <- newIORef lispVal
-         env      <- readIORef envRef
-         writeIORef envRef $ (var, newioref) : env
-         return lispVal
+  if bound then setVar envRef var lispVal else liftIO $ do
+                                               newioref <- newIORef lispVal
+                                               env      <- readIORef envRef
+                                               writeIORef envRef $ (var, newioref) : env
+                                               return lispVal
 
 -- | Bind a list of variables
 bindVars :: Env -> [(VariableName, LispVal)] -> IO Env
