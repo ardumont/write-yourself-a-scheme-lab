@@ -70,3 +70,10 @@ executable write-yourself-a-scheme-lab
   -- Base language which the package is written in.
   default-language:    Haskell2010
   
+test-suite hunit
+  type:                 exitcode-stdio-1.0
+  main-is:              SchemeTests.hs        
+  hs-source-dirs:       tests
+  build-depends:        QuickCheck >= 2, HUnit >= 1.2, text >= 0.11.1.3, base
+  ghc-options:          -Werror -w -threaded
+  default-language:     Haskell2010       
