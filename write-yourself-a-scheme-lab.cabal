@@ -45,17 +45,16 @@ extra-source-files:  README.md
 -- Constraint on the version of Cabal needed to build this package.
 cabal-version:       >=1.10
 
-
 executable write-yourself-a-scheme-lab
   -- .hs or .lhs file containing the Main module.
   main-is: Main.hs
   
   -- Modules included in this executable, other than Main.
-  other-modules: Scheme/Type.hs
-               , Scheme/Parser.hs
-               , Scheme/REPL.hs
-               , Scheme/Primitive.hs
-               , Scheme/IOPrimitive.hs
+  other-modules: Scheme.Type
+                 Scheme.Parser
+                 Scheme.REPL
+                 Scheme.Primitive
+                 Scheme.IOPrimitive
   
   -- LANGUAGE extensions used by modules in this package.
   -- other-extensions:    
